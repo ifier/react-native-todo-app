@@ -7,7 +7,11 @@ import { Navigation, Options } from 'react-native-navigation';
 import DatePicker from 'react-native-date-picker';
 
 import { Screens } from '~navigation/Screens';
-import { BodyLayout, FooterLayout } from '~components/Layout';
+import {
+  BodyLayout,
+  FooterLayout,
+  LayoutAvoidKeyboard
+} from '~components/Layout';
 import { Text } from '~components/Text';
 import { Button } from '~components/Button';
 import { ListItem } from '~components/ListItem';
@@ -87,40 +91,49 @@ class AddTask extends React.PureComponent<IProps, IState> {
     return (
       <>
         <BodyLayout>
-          <ScrollView>
-            <ListItem>
-              <TextInput
-                multiline
-                value={text}
-                style={styles.textInput}
-                placeholder="Text of task"
-                onChangeText={this.onInputChangeHandler}
-              />
-            </ListItem>
-            <ListItem>
-              <View style={styles.datePickerContainer}>
-                <View style={styles.datePickerHeader}>
-                  <Text>Due to:</Text>
-                  <Text color="secondary" variant="subhead1">
-                    {moment(date).format('DD MMMM YYYY, hh:mm A')}
-                  </Text>
+          <LayoutAvoidKeyboard>
+            <ScrollView
+              contentInsetAdjustmentBehavior="automatic"
+              contentContainerStyle={{ flexGrow: 1 }}>
+              <ListItem>
+                <TextInput
+                  multiline
+                  autoFocus
+                  value={text}
+                  style={styles.textInput}
+                  placeholder="Text of task"
+                  onChangeText={this.onInputChangeHandler}
+                />
+              </ListItem>
+              <ListItem>
+                <View style={styles.datePickerContainer}>
+                  <View style={styles.datePickerHeader}>
+                    <Text>Due to:</Text>
+                    <Text color="secondary" variant="subhead1">
+                      {moment(date).format('DD MMMM YYYY, hh:mm A')}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            </ListItem>
-            <ListItem>
-              <DatePicker date={date} onDateChange={this.onDateChange} />
-            </ListItem>
-          </ScrollView>
+              </ListItem>
+              <ListItem>
+                <DatePicker
+                  date={date}
+                  onDateChange={this.onDateChange}
+                  style={styles.datePicker}
+                />
+              </ListItem>
+            </ScrollView>
+            <FooterLayout>
+              <Button
+                disabled={!text}
+                color="primary"
+                variant="contained"
+                onPress={this.onAddButtonPress}>
+                Add
+              </Button>
+            </FooterLayout>
+          </LayoutAvoidKeyboard>
         </BodyLayout>
-        <FooterLayout>
-          <Button
-            disabled={!text}
-            color="primary"
-            variant="contained"
-            onPress={this.onAddButtonPress}>
-            Add
-          </Button>
-        </FooterLayout>
       </>
     );
   }

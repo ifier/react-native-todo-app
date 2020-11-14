@@ -105,18 +105,19 @@ class Home extends React.PureComponent<IProps> {
               <ListEmpty title="No items yet" text="Add your first todo list" />
             }
           />
+
+          <FooterLayout>
+            {todos.length ? (
+              <Text variant="footnote1">{todos.length} todos</Text>
+            ) : (
+              <View />
+            )}
+            <TouchableIcon
+              icon="pencil-plus-outline"
+              onPress={this.onAddNewTodoPress}
+            />
+          </FooterLayout>
         </BodyLayout>
-        <FooterLayout>
-          {todos.length ? (
-            <Text variant="footnote1">{todos.length} todos</Text>
-          ) : (
-            <View />
-          )}
-          <TouchableIcon
-            icon="pencil-plus-outline"
-            onPress={this.onAddNewTodoPress}
-          />
-        </FooterLayout>
       </>
     );
   }

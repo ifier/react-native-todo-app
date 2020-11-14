@@ -9,6 +9,9 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1
   },
+  footerContainer: {
+    marginTop: theme.spacing(2)
+  },
   footer: {
     width: '100%',
     flexDirection: 'row',

@@ -5,6 +5,9 @@ import { theme } from '../assets/theme';
 export const setDefaultNavigationOptions = async () => {
   Navigation.setDefaultOptions({
     topBar: {
+      title: {
+        color: theme.palette.black.main
+      },
       background: {
         color: theme.palette.background.default
       },
@@ -13,7 +16,8 @@ export const setDefaultNavigationOptions = async () => {
         showTitle: false,
         color: theme.palette.primary.main
       },
-      drawBehind: true
+      drawBehind: true,
+      noBorder: false
     },
     layout: {
       orientation: ['portrait'],

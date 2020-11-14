@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dispatch } from 'redux';
-import { FlatList, View } from 'react-native';
+import { FlatList } from 'react-native';
 import { connect } from 'react-redux';
 import { Options } from 'react-native-navigation';
 
@@ -67,15 +67,14 @@ class Todo extends React.PureComponent<IProps> {
               <ListEmpty title="No tasks yet" text="Add your first task :)" />
             }
           />
+          <FooterLayout>
+            <TouchableIcon
+              icon="delete-outline"
+              onPress={() => {}}
+              color="error"
+            />
+          </FooterLayout>
         </BodyLayout>
-        <FooterLayout>
-          <TouchableIcon
-            icon="delete-outline"
-            onPress={() => {}}
-            color="error"
-          />
-          <View />
-        </FooterLayout>
       </>
     );
   }
