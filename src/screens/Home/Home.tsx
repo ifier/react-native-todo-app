@@ -1,37 +1,42 @@
 import React from 'react';
-import moment from 'moment';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
-import { FlatList, View } from 'react-native';
+import { FlatList, RefreshControl, View } from 'react-native';
 import { Navigation, Options } from 'react-native-navigation';
 
 import { Text } from '~components/Text';
 import { FooterLayout } from '~components/Layout/Footer';
 import { BodyLayout } from '~components/Layout';
-import { ListItem } from '~components/ListItem';
 import { ListEmpty } from '~components/ListEmpty';
 import { TouchableIcon } from '~components/TouchableIcon';
 
 import { IRootState } from '~store/types/state';
 import {
   ITodo,
-  ITodoSelectRequestPayload,
-  ITodoWithTasks
+  ITodoDeleteRequestPayload,
+  ITodoSelectRequestPayload
 } from '~store/todos/types';
 import { TodoSelectors } from '~store/todos/selectors';
 import { TodoActions } from '~store/todos/actions';
 
 import { Screens } from '~navigation/Screens';
+import { TodoListItem } from '~screens/Home/TodoListItem';
 
 import { styles } from './styles';
 
 interface IProps {
   componentId: string;
-  todos: ITodoWithTasks[];
+  todos: ITodo[];
+  unselectTodoRequest: () => void;
   selectTodoRequest: (payload: ITodoSelectRequestPayload) => void;
+  deleteTodoRequest: (payload: ITodoDeleteRequestPayload) => void;
 }
 
-class Home extends React.PureComponent<IProps> {
+interface IState {
+  isRefreshing: boolean;
+}
+
+class Home extends React.PureComponent<IProps, IState> {
   static screenName = Screens.HOME;
 
   static options: Options = {
@@ -42,6 +47,10 @@ class Home extends React.PureComponent<IProps> {
     }
   };
 
+  state = {
+    isRefreshing: false
+  };
+
   onTodoPress = (todo: ITodo) => () => {
     const { selectTodoRequest } = this.props;
 
@@ -50,6 +59,9 @@ class Home extends React.PureComponent<IProps> {
   };
 
   onAddNewTodoPress = () => {
+    const { unselectTodoRequest } = this.props;
+
+    unselectTodoRequest();
     this.navigateToTodoScreen();
   };
 
@@ -60,46 +72,46 @@ class Home extends React.PureComponent<IProps> {
     });
   };
 
-  renderItem = ({ item }: { item: ITodoWithTasks }) => {
-    const { tasks, dateUpdated } = item;
-    const [firstTask, secondTask] = tasks;
+  onRefresh = () => {
+    this.setState({ isRefreshing: true });
 
-    return (
-      <ListItem onPress={this.onTodoPress(item)}>
-        <View style={styles.item}>
-          <Text variant="body1" weight="medium" numberOfLines={1}>
-            {firstTask.text}
-          </Text>
-          <View style={styles.itemFootnote}>
-            <Text variant="subhead1" color="secondary">
-              {moment(dateUpdated).format('MM.DD.YYYY, hh:mm A')}
-            </Text>
-            {secondTask && (
-              <Text
-                variant="footnote1"
-                color="secondary"
-                numberOfLines={1}
-                style={styles.secondText}>
-                {secondTask.text}
-              </Text>
-            )}
-          </View>
-        </View>
-      </ListItem>
-    );
+    setTimeout(() => {
+      this.setState({ isRefreshing: false });
+    }, 1000);
+  };
+
+  onDeletePressHandler = ({ id }: ITodo) => {
+    const { deleteTodoRequest } = this.props;
+
+    deleteTodoRequest({ id });
   };
 
   render() {
     const { todos } = this.props;
+    const { isRefreshing } = this.state;
 
     return (
       <>
         <BodyLayout>
           <FlatList
+            refreshing={isRefreshing}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={this.onRefresh}
+                size={5}
+              />
+            }
             data={todos}
             style={[styles.listContainer]}
             contentContainerStyle={styles.listContainer}
-            renderItem={this.renderItem}
+            renderItem={({ item }: { item: ITodo }) => (
+              <TodoListItem
+                todo={item}
+                onPress={this.onTodoPress}
+                onDeletePress={this.onDeletePressHandler}
+              />
+            )}
             keyExtractor={(item) => String(item.id)}
             ListEmptyComponent={
               <ListEmpty title="No items yet" text="Add your first todo list" />
@@ -128,8 +140,11 @@ const mapStateToProps = (state: IRootState) => ({
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  deleteTodoRequest: (payload: ITodoDeleteRequestPayload) =>
+    dispatch(TodoActions.deleteRequest(payload)),
+  unselectTodoRequest: () => dispatch(TodoActions.unselectTodoRequest()),
   selectTodoRequest: (payload: ITodoSelectRequestPayload) =>
-    dispatch(TodoActions.selectRequest(payload))
+    dispatch(TodoActions.selectTodoRequest(payload))
 });
 
 export const HomeScreen = connect(mapStateToProps, mapDispatchToProps)(Home);

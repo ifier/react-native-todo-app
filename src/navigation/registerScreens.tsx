@@ -4,7 +4,8 @@ import { registerScreens } from 'react-native-navigation-register-screens';
 
 import {
   TopBarAddTodoButton,
-  TopBarCloseModalButton
+  TopBarCloseModalButton,
+  TopBarSaveTaskButton
 } from '~components/TopBarButtons';
 
 import { AddTaskScreen, HomeScreen, TodoScreen } from '../screens';
@@ -17,6 +18,7 @@ export default (store: any) => {
       AddTaskScreen,
 
       TopBarAddTodoButton,
+      TopBarSaveTaskButton,
       TopBarCloseModalButton
     ],
     (Component: any) => (props: any) => {

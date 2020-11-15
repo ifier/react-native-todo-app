@@ -1,29 +1,47 @@
 import React from 'react';
+import moment from 'moment';
 import { Dispatch } from 'redux';
-import { FlatList } from 'react-native';
+import { Alert, FlatList, RefreshControl } from 'react-native';
 import { connect } from 'react-redux';
-import { Options } from 'react-native-navigation';
+import { Navigation, Options } from 'react-native-navigation';
 
 import { ListEmpty } from '~components/ListEmpty';
-import { Text } from '~components/Text';
-import { ListItem } from '~components/ListItem';
 import { BodyLayout, FooterLayout } from '~components/Layout';
 import { TouchableIcon } from '~components/TouchableIcon';
+import { TaskListItem } from './TaskListItem';
 
-import { ITask, ITodo } from '~store/todos/types';
+import {
+  ITodo,
+  ITodoAddRequestPayload,
+  ITodoDeleteRequestPayload,
+  ITodoUpdateRequestPayload
+} from '~store/todos/types';
 import { IRootState } from '~store/types/state';
-import { TodoSelectors } from '~store/todos/selectors';
 import { TodoActions } from '~store/todos/actions';
+import { TasksActions } from '~store/tasks/actions';
+import {
+  ITask,
+  ITasksDeleteRequestPayload,
+  ITasksSetIsCompletedRequestPayload
+} from '~store/tasks/types';
+import { TasksSelectors } from '~store/tasks/selectors';
 
 import { Screens, TopBarButtons } from '~navigation/Screens';
 
 import { styles } from './styles';
 
 interface IProps {
+  componentId: string;
   tasks: ITask[];
-  passedTodo: ITodo;
+  lastTodoId: number;
   selectedTodo: ITodo;
-  unselectTodoRequest: () => void;
+  addTodoRequest: (payload: ITodoAddRequestPayload) => void;
+  updateTodoRequest: (payload: ITodoUpdateRequestPayload) => void;
+  deleteTodoRequest: (payload: ITodoDeleteRequestPayload) => void;
+  setTaskIsCompletedRequest: (
+    payload: ITasksSetIsCompletedRequestPayload
+  ) => void;
+  deleteTaskRequest: (payload: ITasksDeleteRequestPayload) => void;
 }
 
 class Todo extends React.PureComponent<IProps> {
@@ -40,27 +58,113 @@ class Todo extends React.PureComponent<IProps> {
     }
   };
 
-  componentWillUnmount() {
-    const { unselectTodoRequest } = this.props;
+  state = {
+    isRefreshing: false
+  };
 
-    unselectTodoRequest();
+  componentDidMount() {
+    const { selectedTodo, addTodoRequest, lastTodoId } = this.props;
+    const todoId = lastTodoId + 1;
+    const todo: ITodo = {
+      id: todoId,
+      dateUpdated: moment().toDate(),
+      dateCreated: moment().toDate()
+    };
+
+    if (!selectedTodo.id) {
+      addTodoRequest(todo);
+    }
   }
+
+  componentWillUnmount() {
+    const {
+      tasks,
+      selectedTodo: { id },
+      deleteTodoRequest
+    } = this.props;
+
+    if (!tasks.length) {
+      deleteTodoRequest({ id });
+    }
+  }
+
+  onCheckboxPress = (task: ITask) => (isCompleted: boolean) => {
+    const {
+      setTaskIsCompletedRequest,
+      updateTodoRequest,
+      selectedTodo: { id }
+    } = this.props;
+
+    setTaskIsCompletedRequest({
+      ...task,
+      isCompleted
+    });
+    updateTodoRequest({ id });
+  };
+
+  onDeleteTodoPressHandler = () => {
+    const {
+      deleteTodoRequest,
+      selectedTodo: { id },
+      componentId
+    } = this.props;
+
+    Alert.alert(
+      'Delete',
+      'Do you want to delete Todo? All tasks will be lost',
+      [
+        {
+          text: 'Delete',
+          onPress: () => {
+            Navigation.pop(componentId);
+            deleteTodoRequest({ id });
+          },
+          style: 'destructive'
+        },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
+  };
+
+  onDeleteTaskPressHandler = ({ id }: ITask) => {
+    const { deleteTaskRequest } = this.props;
+
+    deleteTaskRequest({ id });
+  };
+
+  onRefresh = () => {
+    this.setState({ isRefreshing: true });
+
+    setTimeout(() => {
+      this.setState({ isRefreshing: false });
+    }, 1000);
+  };
 
   render() {
     const { tasks } = this.props;
+    const { isRefreshing } = this.state;
 
     return (
       <>
         <BodyLayout>
           <FlatList
+            refreshing={isRefreshing}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={this.onRefresh}
+                size={5}
+              />
+            }
             data={tasks}
             style={[styles.listContainer]}
             contentContainerStyle={styles.listContainer}
             renderItem={({ item }) => (
-              <ListItem>
-                <Text>{item.text}</Text>
-                <Text>{item.id}</Text>
-              </ListItem>
+              <TaskListItem
+                task={item}
+                onDeletePress={this.onDeleteTaskPressHandler}
+                onCheckboxPress={this.onCheckboxPress}
+              />
             )}
             keyExtractor={(item) => String(item.id)}
             ListEmptyComponent={
@@ -70,8 +174,9 @@ class Todo extends React.PureComponent<IProps> {
           <FooterLayout>
             <TouchableIcon
               icon="delete-outline"
-              onPress={() => {}}
+              onPress={this.onDeleteTodoPressHandler}
               color="error"
+              disabled={!tasks.length}
             />
           </FooterLayout>
         </BodyLayout>
@@ -81,12 +186,22 @@ class Todo extends React.PureComponent<IProps> {
 }
 
 const mapStateToProps = (state: IRootState) => ({
+  tasks: TasksSelectors.makeGetTasksByTodo(state),
   selectedTodo: state.todos.selectedTodo,
-  tasks: TodoSelectors.makeGetTasksByTodo(state)
+  lastTodoId: state.todos.lastTodoId
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  unselectTodoRequest: () => dispatch(TodoActions.unselectRequest())
+  addTodoRequest: (payload: ITodoAddRequestPayload) =>
+    dispatch(TodoActions.addRequest(payload)),
+  updateTodoRequest: (payload: ITodoUpdateRequestPayload) =>
+    dispatch(TodoActions.updateRequest(payload)),
+  deleteTodoRequest: (payload: ITodoDeleteRequestPayload) =>
+    dispatch(TodoActions.deleteRequest(payload)),
+  deleteTaskRequest: (payload: ITasksDeleteRequestPayload) =>
+    dispatch(TasksActions.deleteRequest(payload)),
+  setTaskIsCompletedRequest: (payload: ITasksSetIsCompletedRequestPayload) =>
+    dispatch(TasksActions.setIsCompletedRequest(payload))
 });
 
 export const TodoScreen = connect(mapStateToProps, mapDispatchToProps)(Todo);

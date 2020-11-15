@@ -1,34 +1,24 @@
 import { createSelector } from 'reselect';
-// import { groupBy, values } from 'lodash';
 
 import { IRootState } from '../types/state';
+import { ITodo } from '~store/todos/types';
 
-const todosSelector = (state: IRootState) => state.todos.todos;
-const tasksSelector = (state: IRootState) => state.todos.tasks;
-const selectedTodoSelector = (state: IRootState) => state.todos.selectedTodo;
+const todosSelector = (state: IRootState) => state.todos.items;
+const tasksSelector = (state: IRootState) => state.tasks.items;
 
 const makeGetTodosWithTasks = createSelector(
   [todosSelector, tasksSelector],
   (todos, tasks) => {
-    return todos.map((todo) => {
+    return todos.reduce((acc: ITodo[], todo) => {
       const todoTasks = tasks.filter((task) => task.todoId === todo.id);
 
-      return {
-        ...todo,
-        tasks: todoTasks
-      };
-    });
-  }
-);
+      if (!todoTasks.length) return acc;
 
-const makeGetTasksByTodo = createSelector(
-  [tasksSelector, selectedTodoSelector],
-  (tasks, selectedTodo) => {
-    return tasks.filter((task) => task.todoId === selectedTodo.id);
+      return [...acc, { ...todo, tasks: todoTasks }];
+    }, []);
   }
 );
 
 export const TodoSelectors = {
-  makeGetTodosWithTasks,
-  makeGetTasksByTodo
+  makeGetTodosWithTasks
 };

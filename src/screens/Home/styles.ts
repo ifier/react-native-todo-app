@@ -25,5 +25,11 @@ export const styles = StyleSheet.create({
     height: theme.spacing(4),
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  leftAction: {
+    backgroundColor: theme.palette.error.light,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    padding: theme.spacing(2)
   }
 });

@@ -1,4 +1,4 @@
-// import { persistStore } from 'redux-persist';
+import { persistStore } from 'redux-persist';
 
 import { setHomeScreenAsRoot } from '~navigation';
 import registerScreens from '~navigation/registerScreens';
@@ -12,8 +12,8 @@ export const initApp = async () => {
   await setDefaultNavigationOptions();
 
   // @ts-ignore
-  // persistStore(store, null, async () => {
-  //   setHomeScreenAsRoot();
-  // });
-  setHomeScreenAsRoot();
+  persistStore(store, null, async () => {
+    setHomeScreenAsRoot();
+  });
+  // setHomeScreenAsRoot();
 };

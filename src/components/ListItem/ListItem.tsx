@@ -9,10 +9,11 @@ import { styles } from './styles';
 interface IProps {
   children: React.ReactNode;
   onPress?: () => void;
+  style?: any;
 }
 
 export const ListItem = (props: IProps) => {
-  const { children, onPress } = props;
+  const { children, onPress, style } = props;
 
   return (
     <TouchableHighlight
@@ -20,7 +21,7 @@ export const ListItem = (props: IProps) => {
       underlayColor={theme.palette.grey.A100}
       style={[styles.container]}>
       <>
-        <View style={[styles.content]}>{children}</View>
+        <View style={[styles.content, style]}>{children}</View>
         <Divider />
       </>
     </TouchableHighlight>

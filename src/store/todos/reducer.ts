@@ -4,12 +4,17 @@ import { TodoActions, TodoActionTypes } from './actions';
 import { ITodo, ITodoState } from './types';
 
 const initialState: ITodoState = {
-  todos: [],
-  tasks: [],
-  lastTaskId: 0,
+  items: [],
   lastTodoId: 0,
   selectedTodo: {} as ITodo
 };
+
+// ATTENTION !!!!!!!!!!!!!
+// ATTENTION !!!!!!!!!!!!!
+// ATTENTION !!!!!!!!!!!!!
+// Ideally, all this functionality related to new arrays and etc should lives
+// at API. We can make request to API, it will update todos/tasks and return new array/updated value
+// OR, if we don't have API - at sagas/thunks
 
 export const todoReducer = (
   state: ITodoState = initialState,
@@ -17,45 +22,37 @@ export const todoReducer = (
 ): ITodoState => {
   switch (action.type) {
     case TodoActionTypes.ADD_TODO: {
-      const todoId = state.lastTodoId + 1;
-      const todo: ITodo = {
-        id: todoId,
-        dateUpdated: moment().toDate(),
-        dateCreated: moment().toDate()
-      };
-      const todos = [todo, ...state.todos];
-      const tasks = [{ ...action.payload, todoId }, ...state.tasks];
+      const items = [action.payload, ...state.items];
       return {
         ...state,
-        todos,
-        tasks,
-        lastTodoId: state.lastTodoId + 1,
-        lastTaskId: action.payload.id,
-        selectedTodo: todo
+        items,
+        lastTodoId: action.payload.id,
+        selectedTodo: action.payload
       };
     }
     case TodoActionTypes.UPDATE_TODO: {
-      const {
-        selectedTodo: { id },
-        todos
-      } = state;
+      const { id: todoId } = action.payload;
       const searchedTodo =
-        todos.find((item) => item.id === id) || ({} as ITodo);
+        state.items.find((item) => item.id === todoId) || ({} as ITodo);
       const updatedTodo = {
         ...searchedTodo,
         dateUpdated: moment().toDate()
       };
-      const tasks = [...state.tasks, { ...action.payload, todoId: id }];
-      const updatedTodos = [
+      const items = [
         updatedTodo,
-        ...todos.filter((item) => item.id !== id)
+        ...state.items.filter((item) => item.id !== todoId)
       ];
       return {
         ...state,
-        todos: updatedTodos,
-        tasks,
-        lastTaskId: action.payload.id,
-        selectedTodo: updatedTodo
+        items
+      };
+    }
+    case TodoActionTypes.DELETE_TODO: {
+      const { id } = action.payload;
+      return {
+        ...state,
+        items: state.items.filter((todo) => todo.id !== id),
+        selectedTodo: initialState.selectedTodo
       };
     }
     case TodoActionTypes.SELECT_TODO: {

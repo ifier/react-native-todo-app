@@ -19,5 +19,8 @@ export const styles = StyleSheet.create({
   },
   warning: {
     color: theme.palette.warning.main
+  },
+  disabled: {
+    color: theme.palette.grey.A200
   }
 });

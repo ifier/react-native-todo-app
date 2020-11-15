@@ -35,6 +35,12 @@ export const setDefaultNavigationOptions = async () => {
             type: 'accelerate'
           }
         }
+      },
+      push: {
+        waitForRender: true
+      },
+      showModal: {
+        waitForRender: true
       }
     }
   });

@@ -1,41 +1,23 @@
-export interface ITask {
-  todoId: number;
-  id: number;
-  isCompleted: boolean;
-  text: string;
-  dueDate: Date;
-}
+import { ITask } from '~store/tasks/types';
 
 export interface ITodo {
   id: number;
   dateCreated: Date;
   dateUpdated: Date;
+  tasks?: ITask[];
 }
 
-export interface ITodoAddRequestPayload {
+export interface ITodoAddRequestPayload extends ITodo {}
+export interface ITodoUpdateRequestPayload {
   id: number;
-  isCompleted: boolean;
-  text: string;
-  dueDate: Date;
 }
-
-export interface ITodoAddResponsePayload {
-  task: ITask;
-  todo: ITodo;
+export interface ITodoDeleteRequestPayload {
+  id: number;
 }
-
-export interface ITodoUpdateRequestPayload extends ITodoAddRequestPayload {}
-
 export interface ITodoSelectRequestPayload extends ITodo {}
 
-export interface ITodoWithTasks extends ITodo {
-  tasks: ITask[];
-}
-
 export interface ITodoState {
-  todos: ITodo[];
-  tasks: ITask[];
+  items: ITodo[];
   lastTodoId: number;
-  lastTaskId: number;
   selectedTodo: ITodo;
 }
